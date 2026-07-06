@@ -594,6 +594,7 @@ def plot_variants_by_iteration(
 
     Args:
     df: DataFrame with 'variant', 'iteration', and activity column
+    df_labels: DataFrame with activity from DMS
     activity_column: Column name containing activity values
     output_dir: Directory to save the plot
     output_file: Filename for the saved plot
@@ -604,15 +605,15 @@ def plot_variants_by_iteration(
     df = df.reset_index(drop=True)
     activity_max_value = df_labels['activity'].max()
 
-    plt.figure(figsize=(15, 9))
+    plt.figure(figsize=(24, 9))
 
     # Plot each variant in the order of the dataframe, colored by iteration
     for iteration, group in df.groupby("iteration"):
-        plt.bar(group.index, group[activity_column], label=f"Round {iteration}")
+        plt.bar(group.index, group[activity_column], label=f"Round {iteration}", width=0.6)
 
     # Customize
     
-    plt.xticks(df.index, df["variant"], rotation=45, ha='right')
+    plt.xticks(df.index, df["variant"], rotation=45, ha='center')
     plt.ylabel(activity_column.capitalize())
     plt.axhline(1.0, color = 'red', linestyle = '--', label='GOF cutoff')
     plt.axhline(df_labels['activity'].max(), color ='blue', linestyle = '-.', label = f'Max activity = {activity_max_value}')
