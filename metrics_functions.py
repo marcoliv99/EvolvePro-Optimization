@@ -221,3 +221,19 @@ def metrics_plot(metrics_df: pd.DataFrame, path:str):
         bbox_inches='tight'
     )
     return plt.show()
+
+def create_round_file(df_labels: pd.DataFrame, voi: list) -> pd.DataFrame:
+    """This function takes as input the labels file (DMS results usually)
+    and a list of variant of interest (voi) so it could generate a new file 
+    with the voi in one coloumn and their activity in another"""
+    d = {}
+    for v,a in zip(df_labels['Variant'], df_labels['activity']):
+        if v in voi:
+            v_short = v[1:]
+            d[v_short] = [a]
+    df = pd.DataFrame.from_dict(d, orient='index', columns=['activity'])
+    df.index.name = 'Variant'
+    df = df.reset_index()
+    df.columns = ['Variant', 'activity']
+    df.to_excel('/home/tigem/m.livero/Desktop/EvolvePro/GPR68/2_rep/round_file.xlsx', sheet_name='sample', index=False)
+    return df
