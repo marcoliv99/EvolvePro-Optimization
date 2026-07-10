@@ -235,5 +235,4 @@ def create_round_file(df_labels: pd.DataFrame, voi: list) -> pd.DataFrame:
     df.index.name = 'Variant'
     df = df.reset_index()
     df.columns = ['Variant', 'activity']
-    df.to_excel('/home/tigem/m.livero/Desktop/EvolvePro/GPR68/2_rep/round_file.xlsx', sheet_name='sample', index=False)
     return df
