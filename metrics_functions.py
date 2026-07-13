@@ -228,11 +228,14 @@ def create_round_file(df_labels: pd.DataFrame, voi: list) -> pd.DataFrame:
     with the voi in one coloumn and their activity in another"""
     d = {}
     for v,a in zip(df_labels['Variant'], df_labels['activity']):
+        print (v)
+        print(a)
         if v in voi:
             v_short = v[1:]
-            d[v_short] = [a]
-    df = pd.DataFrame.from_dict(d, orient='index', columns=['activity'])
+            d[v_short] = a
+    df = pd.DataFrame.from_dict(d, orient='index')
     df.index.name = 'Variant'
+    df.columns = ['activity']
     df = df.reset_index()
-    df.columns = ['Variant', 'activity']
+    print(df)
     return df
