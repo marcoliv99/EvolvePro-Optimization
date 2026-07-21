@@ -4,32 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import seaborn as sns
 
-#Loading the dataset
-def load_dataset(df, path_labels: str, 
-                 threshold_hit: float)-> pd.DataFrame:
-    """Loads the two dataframes: one from the dms/experimental data and one from the round, 
-    merging the column activity from the first one into the second and calculating
-    a new column that contains the activity in binary form based on a threshold. 
-    Please note that the path argument can be both a str or a directed pd.DataFrame """
-    
-    if path_labels.endswith(('.xlsx', '.xls')):
-        raise RuntimeError(f'The uploaded Dataframe is an excel file, please use a csv format')
-    if df is str:
-        df_round = pd.read_csv(df)
-        if df.endswith(('.xlsx', '.xls')):
-            raise RuntimeError(f'The uploaded Dataframe is an excel file, please use a csv format')
-    else:
-        df is pd.DataFrame
-    df_round = df
-    df_labels = pd.read_csv(path_labels)
-    labels_activity = df_labels[['variant', 'activity']]
-    df_merged = pd.merge(df_round, labels_activity, on='variant', how='left')
-    df_ordinato = df_merged.sort_values(by='y_pred', ascending=False).reset_index(drop=True)
-    df_ordinato['activity_binary'] = (df_ordinato['activity'] >= threshold_hit).astype(int)
-    #print(df_ordinato.head(10))
-    
-    return df_ordinato
-
 
 #Enrichment Factor
 def enrichment_factor(df: pd.DataFrame,
@@ -90,32 +64,6 @@ def apk(df: pd.DataFrame,
     apk = somma/ r_totali if r_totali > 0 else 0.0
     return apk
 
-
-#Create a dataframe in which store the results
-def store_results(path: str, n_rounds: int):
-    """This creates a nested dictionary with the replicates and the rounds for each replicate,
-    storing the df_sorted_all.csv file within it. The dict is create from the directory hiercarchy 
-    in which the results are stored. The input dict must be empty. 
-    Please note that the n_rounds value must be written as n_rounds+1 otherwise
-    you will lose the last round"""
-    d = {}
-    #iterate over dir in path given in input 
-    for dir in os.listdir(path):
-        #for iterating over the dir
-        if dir.endswith('_rep'): 
-            #empty dict for storing
-            d[dir] = {} 
-            for i in range(1, n_rounds): #loop for iterate over rounds
-                if path.endswith(('.xlsx', '.xls')):
-                    raise RuntimeError(f'The uploaded Dataframe is an excel file, please use a csv format')
-                rep_path = os.path.join(path, dir, f'Round{i}')
-                d[dir][f'Round{i}']= None
-                round_path = os.listdir(rep_path)
-                file_path = os.path.join(rep_path, 'df_sorted_all.csv')
-                d[dir][f'Round{i}']= pd.read_csv(file_path)
-        else:
-            raise RuntimeError(f'No directory ends with _rep, please rename your directory')
-    return d
 
 #Function that defines how to calculate the enrichment factor and the average precision
 def metrics_calc(labels: str, results: dict) -> pd.DataFrame:
@@ -222,17 +170,4 @@ def metrics_plot(metrics_df: pd.DataFrame, path:str):
     )
     return plt.show()
 
-def create_round_file(df_labels: pd.DataFrame, voi: list) -> pd.DataFrame:
-    """This function takes as input the labels file (DMS results usually)
-    and a list of variant of interest (voi) so it could generate a new file 
-    with the voi in one coloumn and their activity in another"""
-    d = {}
-    for v,a in zip(df_labels['Variant'], df_labels['activity']):
-        if v in voi:
-            v_short = v[1:]
-            d[v_short] = a
-    df = pd.DataFrame.from_dict(d, orient='index')
-    df.index.name = 'Variant'
-    df.columns = ['activity']
-    df = df.reset_index()
-    return df
+
