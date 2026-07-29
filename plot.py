@@ -396,3 +396,38 @@ def plot_variants_by_iteration(
         )
 
     plt.show()
+
+def metrics_plot(metrics_df: pd.DataFrame, path:str):
+    """
+    Simple line plot of variants grouped by iteration.
+    
+    Args:
+    df: DataFrame with 'Rounds', 'Enrichment Factor', 'Average Precision@K',
+    mean and std of each metric.
+    path: path where you wanna save your plot.
+    """
+    fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(15, 5))
+    sns.lineplot(x=metrics_df['Rounds'], y=metrics_df['ef_mean'], marker='o', label='Mean Enrichment Factor with Std', ax=ax1)
+    ax1.set_title('Enrichment Factor (top 10%) Across Rounds')
+    ax1.get_xticks
+    ax1.set_xlabel('Rounds')
+    ax1.fill_between(x=metrics_df['Rounds'], y1=  np.subtract(metrics_df['ef_mean'], metrics_df['ef_std']), 
+                     y2=np.add(metrics_df['ef_mean'], metrics_df['ef_std']),  alpha=0.2)
+    ax1.set_ylabel('Enrichment Factor', color='blue')
+    ax1.tick_params(axis='y', labelcolor='blue')
+
+
+    sns.lineplot(x=metrics_df['Rounds'], y=metrics_df['apk_mean'], marker='o', label='Mean Average Precision@10 with std', ax=ax2, color='orange')
+    ax2.set_title('Average Precision@10 Across Rounds')
+    ax2.set_xlabel('Rounds')
+    ax2.fill_between(x=metrics_df['Rounds'], y1=  np.subtract(metrics_df['apk_mean'], metrics_df['apk_std']), 
+                     y2=np.add(metrics_df['apk_mean'], metrics_df['apk_std']),  alpha=0.2)
+    ax2.set_ylabel('Average Precision@10', color='orange')
+    ax2.tick_params(axis='y', labelcolor='orange')
+    fig.tight_layout()
+    plt.savefig(
+        path, 
+        dpi=300, 
+        bbox_inches='tight'
+    )
+    return plt.show()
