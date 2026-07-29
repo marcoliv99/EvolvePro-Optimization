@@ -61,8 +61,8 @@ def apk(df: pd.DataFrame,
             hits_trovati += 1 #contatore del n di hits fino alla posizione i
             precision_at_i = hits_trovati / i #calcolo della precision in pos i
             somma+= precision_at_i #contatore delle precision cumulate fino alla posizione i 
-
-    apk = somma/ r_totali if r_totali > 0 else 0.0
+    denom = min(k, r_totali)
+    apk = somma/ denom if  denom > 0 else 0.0
     return apk
 
 
