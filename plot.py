@@ -397,33 +397,44 @@ def plot_variants_by_iteration(
 
     plt.show()
 
-def metrics_plot(metrics_df: pd.DataFrame, path:str):
-    """
-    Simple line plot of variants grouped by iteration.
-    
-    Args:
-    df: DataFrame with 'Rounds', 'Enrichment Factor', 'Average Precision@K',
-    mean and std of each metric.
-    path: path where you wanna save your plot.
-    """
+#Creates a figure with two plots, one for the Average precision
+# and one for the Enrichment factor   
+def metrics_plot(metrics_df: pd.DataFrame, 
+                 path:str, 
+                 mean_ef=None, 
+                 mean_ap=None, 
+                 rank_ef=None,
+                 rank_ap=None,
+                 threshold_hit=None):
+#Features of the first plot --> Enrichment Factor
     fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(15, 5))
     sns.lineplot(x=metrics_df['Rounds'], y=metrics_df['ef_mean'], marker='o', label='Mean Enrichment Factor with Std', ax=ax1)
-    ax1.set_title('Enrichment Factor (top 10%) Across Rounds')
-    ax1.get_xticks
+    ax1.set_title(f'Enrichment Factor (top 10%) on rounds with threshold {threshold_hit}')
+#Baseline of random permutation
+    ax1.axhline(mean_ef, color = 'black', linestyle='--', label='Baseline')
+#ESMRank results
+    ax1.axhline(rank_ef, color = '#009E73', linestyle = '-.', label = 'ESMRank' )
     ax1.set_xlabel('Rounds')
     ax1.fill_between(x=metrics_df['Rounds'], y1=  np.subtract(metrics_df['ef_mean'], metrics_df['ef_std']), 
                      y2=np.add(metrics_df['ef_mean'], metrics_df['ef_std']),  alpha=0.2)
-    ax1.set_ylabel('Enrichment Factor', color='blue')
-    ax1.tick_params(axis='y', labelcolor='blue')
+    ax1.set_ylabel('Enrichment Factor')
+    ax1.tick_params(axis='y')
+    ax1.legend()
 
-
+#Feature of the second plot --> Average Precision
     sns.lineplot(x=metrics_df['Rounds'], y=metrics_df['apk_mean'], marker='o', label='Mean Average Precision@10 with std', ax=ax2, color='orange')
-    ax2.set_title('Average Precision@10 Across Rounds')
+    ax2.set_title(f'Average Precision@10 on rounds with threshold {threshold_hit}')
     ax2.set_xlabel('Rounds')
     ax2.fill_between(x=metrics_df['Rounds'], y1=  np.subtract(metrics_df['apk_mean'], metrics_df['apk_std']), 
                      y2=np.add(metrics_df['apk_mean'], metrics_df['apk_std']),  alpha=0.2)
-    ax2.set_ylabel('Average Precision@10', color='orange')
-    ax2.tick_params(axis='y', labelcolor='orange')
+    ax2.set_ylabel('Average Precision@10')
+    ax2.tick_params(axis='y')
+#Baseline of random permutation
+    ax2.axhline(mean_ap,color = 'black', linestyle='--', label='Baseline')
+#ESMRank results
+    ax2.axhline(rank_ap, color = "#009E73", linestyle = '-.', label = 'ESMRank' )
+    ax2.legend()
+
     fig.tight_layout()
     plt.savefig(
         path, 
@@ -431,3 +442,4 @@ def metrics_plot(metrics_df: pd.DataFrame, path:str):
         bbox_inches='tight'
     )
     return plt.show()
+

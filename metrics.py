@@ -115,11 +115,35 @@ def ndcg(df_labels:pd.DataFrame, df_round: pd.DataFrame | dict, k:int=10)-> floa
     NDCG = DCG/IDCG
     return NDCG
 
-#Function that defines how to calculate the enrichment factor and the average precision
+# This function calculates all the metrics for a single round of Evolvepro
+def metrics_calc_sing(round:str, labels: str, results: pd.DataFrame, output_dir:str, threshold_hit:float) -> pd.DataFrame:
+    df_labels = pd.read_csv(labels)
+    df_round = load_dataset(results, labels, threshold_hit)
+    ef = enrichment_factor(df_round)
+    ap = apk(df_round)
+    a_rank = avg_rank(df_round)
+    b_rank = best_rank(df_round)
+    recall = top_recall(df_round)
+    normdcg = ndcg(df_labels, df_round)
+    metrics = { 'ef': ef, 
+                'ap': ap, 
+                'avg_rank':a_rank, 
+                'best_rank':b_rank, 
+                'top_recall':recall, 
+                'ndcg':normdcg} 
+    #print(metrics)
+    df_metrics = pd.DataFrame(metrics.values(), columns=[round], index= metrics.keys())
+    print(f'This is the df_metrics new {df_metrics}')
+    df_metrics.to_csv(output_dir, index=True)
+    return df_metrics
+
+
+#Function that defines how to calculate the enrichment factor, average precision, 
+#average rank, best rank, top recall and NDCG
 def metrics_calc(labels: str, results: dict | pd.DataFrame, rep_list: list, threshold_hit:float, output_dir: str) -> pd.DataFrame:
     """ This function takes as argument the labels file and a dictionary that stores 
-    the results from the replicates of Evolvepro to calculate the Enrichment Factor
-    and the Average Precision, and stores the results in a new Dataframe"""
+    the results from the replicates of Evolvepro to calculate the Enrichment Factor, Average Precision,
+    Average Rank, Best Rank, Top Recall and NDCG  and stores the results in a new Dataframe"""
     #Sorts the rounds's column in the dataframe with just the number of the iteration/round
     rounds = sorted(
         results['1_rep'].keys(),
@@ -224,42 +248,3 @@ def random_baseline_permutation(df:pd.DataFrame,
     return np.array(scores)
 
 
-def metrics_plot(metrics_df: pd.DataFrame, 
-                 path:str, 
-                 mean_ef=None, 
-                 mean_ap=None, 
-                 rank_ef=None,
-                 rank_ap=None,
-                 threshold_hit=None):
-
-    fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(15, 5))
-    sns.lineplot(x=metrics_df['Rounds'], y=metrics_df['ef_mean'], marker='o', label='Mean Enrichment Factor with Std', ax=ax1)
-    ax1.set_title(f'Enrichment Factor (top 10%) on rounds with threshold {threshold_hit}')
-    ax1.axhline(mean_ef, color = 'black', linestyle='--', label='Baseline')
-    ax1.axhline(rank_ef, color = '#009E73', linestyle = '-.', label = 'ESMRank baseline' )
-    ax1.set_xlabel('Rounds')
-    ax1.fill_between(x=metrics_df['Rounds'], y1=  np.subtract(metrics_df['ef_mean'], metrics_df['ef_std']), 
-                     y2=np.add(metrics_df['ef_mean'], metrics_df['ef_std']),  alpha=0.2)
-    ax1.set_ylabel('Enrichment Factor')
-    ax1.tick_params(axis='y')
-    ax1.legend()
-
-
-    sns.lineplot(x=metrics_df['Rounds'], y=metrics_df['apk_mean'], marker='o', label='Mean Average Precision@10 with std', ax=ax2, color='orange')
-    ax2.set_title(f'Average Precision@10 on rounds with threshold {threshold_hit}')
-    ax2.set_xlabel('Rounds')
-    ax2.fill_between(x=metrics_df['Rounds'], y1=  np.subtract(metrics_df['apk_mean'], metrics_df['apk_std']), 
-                     y2=np.add(metrics_df['apk_mean'], metrics_df['apk_std']),  alpha=0.2)
-    ax2.set_ylabel('Average Precision@10')
-    ax2.tick_params(axis='y')
-    ax2.axhline(mean_ap,color = 'black', linestyle='--', label='Baseline')
-    ax2.axhline(rank_ap, color = "#009E73", linestyle = '-.', label = 'ESMRank baseline' )
-    ax2.legend()
-
-    fig.tight_layout()
-    plt.savefig(
-        path, 
-        dpi=300, 
-        bbox_inches='tight'
-    )
-    return plt.show()

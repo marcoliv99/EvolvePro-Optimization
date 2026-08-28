@@ -23,7 +23,8 @@ def load_dataset(df, path_labels: str,
         df is pd.DataFrame
     df_round = df
     df_labels = pd.read_csv(path_labels)
-    labels_activity = df_labels[['variant', 'activity']]
+    df_labels["true_rank"] = df_labels.index+1
+    labels_activity = df_labels[['variant', 'activity', 'true_rank']]
     df_merged = pd.merge(df_round, labels_activity, on='variant', how='left')
     df_ordinato = df_merged.sort_values(by='y_pred', ascending=False).reset_index(drop=True)
     df_ordinato['activity_binary'] = (df_ordinato['activity'] >= threshold_hit).astype(int)
