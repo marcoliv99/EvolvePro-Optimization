@@ -15,13 +15,12 @@ def load_dataset(df, path_labels: str,
     
     if path_labels.endswith(('.xlsx', '.xls')):
         raise RuntimeError(f'The uploaded Dataframe is an excel file, please use a csv format')
-    if df is str:
+    if isinstance(df, str):
         df_round = pd.read_csv(df)
         if df.endswith(('.xlsx', '.xls')):
             raise RuntimeError(f'The uploaded Dataframe is an excel file, please use a csv format')
-    else:
-        df is pd.DataFrame
-    df_round = df
+    elif isinstance(df, pd.DataFrame):
+        df_round = df.copy()
     df_labels = pd.read_csv(path_labels)
     df_labels["true_rank"] = df_labels.index+1
     labels_activity = df_labels[['variant', 'activity', 'true_rank']]

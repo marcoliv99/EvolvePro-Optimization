@@ -14,7 +14,7 @@ import math
 import pandas as pd
 import pytest
 
-from metrics_functions import enrichment_factor, apk
+from metrics import enrichment_factor, apk
 
 
 def make_df(labels):
