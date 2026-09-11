@@ -5,3 +5,4 @@ avg_rank,8.0
 best_rank,6.0
 top_recall,0.16666666666666666
 ndcg,0.212009935477014
+diversity,5.0

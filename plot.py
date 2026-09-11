@@ -443,3 +443,106 @@ def metrics_plot(metrics_df: pd.DataFrame,
     )
     return plt.show()
 
+#New function for generating metrics' plots
+"""
+Generate and save one plot per metric (EF, AP, Avg Rank, Best Rank,
+Top Recall, NDCG) showing performance across active learning rounds.
+
+For each metric, saves a separate PNG with mean ± std band, a
+permutation baseline (dashed) and an ESM rank reference (dash-dot).
+
+Parameters
+----------
+metrics_df : pd.DataFrame
+    Must include 'Rounds' and, per metric, '{METRIC}@{k}_Mean'/'_Std'.
+path : str
+    Output directory (must already exist) for the saved plots.
+k : int
+    Top-k value used to select the metric columns.
+permutation_baselines : dict
+    Baseline values keyed by '{METRIC}@{k}_Mean'.
+esm_df : pd.DataFrame
+    Indexed by '{METRIC}@{k}', with an 'ESM Rank' column.
+threshold_hit : float, optional
+    Threshold value shown in each plot title.
+
+Returns
+-------
+None
+    Each plot is saved to '{path}/{metric}_at_{k}.png'.
+"""
+def metrics_plot_new(metrics_df: pd.DataFrame,
+                      path: str,
+                      k: int,
+                      permutation_baselines: dict,
+                      esm_df: pd.DataFrame,
+                      threshold_hit=None):
+
+#Dict for metrics encoding in the three dataframes
+    metric_labels = {'ef': 'Enrichment Factor',
+        'ap': 'Avg Precision',
+        'avg_rank': 'Avg Rank',
+        'best_rank': 'Best Rank',
+        'top_recall': 'Top Recall',
+        'ndcg': 'NDCG'}
+
+    key_map = {'ef': 'EF',
+               'ap': 'AP', 
+               'avg_rank': 'Avg_Rank',
+               'best_rank': 'Best_Rank', 
+               'top_recall': 'Top_Recall', 
+               'ndcg': 'NDCG'}
+#Parameter for font sizes in plots
+    plt.rcParams.update({'font.size':14,
+                         'axes.titlesize': 16,
+                         'axes.labelsize': 14})
+    metric_names = list(metric_labels.keys())
+
+#For loop to iterate on the three dataframes needed for the plots
+    for m in metric_names:
+        fig, ax = plt.subplots(figsize=(8,6))
+        
+        # metrics_df and esm/permutation share the same names for mean and std 
+        mean_col = f'{key_map[m]}@{k}_Mean'
+        std_col = f'{key_map[m]}@{k}_Std'
+
+        sns.lineplot(x=metrics_df['Rounds'], y=metrics_df[mean_col],
+                     marker='o', label=f'Mean ± Std',
+                     ax=ax)
+
+        ax.fill_between(
+            x=metrics_df['Rounds'],
+            y1=np.subtract(metrics_df[mean_col], metrics_df[std_col]),
+            y2=np.add(metrics_df[mean_col], metrics_df[std_col]),
+            alpha=0.2
+        )
+
+        # Permutation
+        perm_key = f'{key_map[m]}@{k}_Mean'
+        if perm_key in permutation_baselines:
+            perm_val = permutation_baselines[perm_key]
+            ax.axhline(perm_val, color='black', linestyle='--', label='Baseline')
+
+        # ESM rank
+        esm_key = f'{key_map[m]}@{k}'
+        if esm_key in esm_df.index:
+            esm_val = esm_df.loc[esm_key, 'ESM Rank']
+            ax.axhline(esm_val, color='#009E73', linestyle='-.', label='ESMRank')
+
+        ax.set_title(f'{metric_labels[m]}@{k} on rounds with threshold {threshold_hit}')
+        ax.set_xlabel('Rounds')
+        ax.tick_params(axis='x', rotation=45)
+        ax.set_ylabel(metric_labels[m])
+        ax.tick_params(axis='y')
+        ax.legend(loc='lower right',
+                  fontsize=7,
+                  frameon=True,
+                  framealpha = 0.8)
+        fig.tight_layout()
+
+        save_path = f'{path}{m}@{k}.png'
+
+        fig.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.show(fig)
+        plt.close(fig)
+    return 
